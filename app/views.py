@@ -8,6 +8,7 @@ from .serializers import WatchListSerializer, UserSerializer, PlottingSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
+from django.db.utils import IntegrityError
 from urllib.request import urlopen, Request
 from urllib.error import URLError
 import pandas as pd
@@ -26,11 +27,15 @@ class WatchListViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     
     def create(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.POST)
+        try:
+            serializer = self.serializer_class(data=request.POST)
 
-        if serializer.is_valid():
-            serializer.save(user=request.user)
-            return Response(serializer.data,status.HTTP_201_CREATED)
+            if serializer.is_valid():
+                serializer.save(user=request.user)
+                return Response(serializer.data,status.HTTP_201_CREATED)
+        except IntegrityError as e:
+            msg = {'msg': f'You already have {request.POST['symbol']} in your watchlist'}
+            return Response(msg,status.HTTP_409_CONFLICT)
 
 
 class UserViewSet(viewsets.ModelViewSet):
@@ -45,15 +50,18 @@ class UserViewSet(viewsets.ModelViewSet):
         watchlists = WatchList.objects.filter(user=user.id)
         try:
             for watchlist in watchlists:
-                # print(watchlist)
+                news_title = []
                 ticker = yf.Ticker(watchlist.symbol)
-                hist1 = ticker.history(period='5d')['Close'].iloc[-1]
-                hist2 = ticker.history(period='5d')['Close'].iloc[-2]
+                news = ticker.news
+                for info in news:
+                    news_title.append(info['title'])
+                hist1 = ticker.history(period='5d')['Close'].iloc[4]
+                hist2 = ticker.history(period='5d')['Close'].iloc[3]
                 day_change = hist1 - hist2
                 percent_change = day_change * 100 /hist2
                 info = ticker.fast_info['market_cap']
 
-                stock_data.append({watchlist.symbol:{'symbol':watchlist.symbol,'close':round(hist1,2),'per_chg':f'{round(percent_change,2)}%','Cap':f'{info:,.2f}'}})
+                stock_data.append({'symbol':watchlist.symbol,'close':round(hist1,2),'per_chg':f'{round(percent_change,2)}%','Cap':f'{info:,.2f}','news':news_title})
 
 
             return Response({'Data':stock_data},status.HTTP_200_OK)

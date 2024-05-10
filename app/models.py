@@ -59,8 +59,13 @@ class User(AbstractBaseUser,PermissionsMixin):
 
 
 class WatchList(models.Model):
-    symbol = models.CharField(max_length = 7, blank=False, unique=True)
+    symbol = models.CharField(max_length = 7, blank=False)
     user = models.ForeignKey(User, related_name='watchlist',on_delete=models.CASCADE)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(name="unique_user_symbol",fields=["symbol","user"])
+        ]
 
     def save(self, *args, **kwargs):
         self.symbol = self.symbol.upper()
@@ -70,7 +75,7 @@ class WatchList(models.Model):
         return self.symbol
 
 def upload_path(instance,filename):
-    return '/'.join(['covers',filename])
+    return '/'.join(['static',filename])
 
 class Plotting(models.Model):
     plot = models.ImageField(blank=True)
