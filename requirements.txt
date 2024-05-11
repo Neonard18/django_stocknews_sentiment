@@ -1,9 +1,5 @@
-appdirs==1.4.4
-asgiref==3.7.2
 beautifulsoup4==4.12.3
 bs4==0.0.2
-certifi==2023.7.22
-charset-normalizer==3.2.0
 Django==4.2.7
 django-bootstrap5==23.4
 django-cors-headers==4.3.1
@@ -14,8 +10,6 @@ multidict==6.0.5
 nltk==3.8.1
 numpy==1.26.4
 pandas==2.2.1
-peewee==3.17.1
-pillow==10.2.0
 Pygments==2.16.1
 urllib3==2.0.4
 yfinance==0.2.37
