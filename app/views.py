@@ -45,7 +45,7 @@ class WatchListViewSet(viewsets.ModelViewSet):
                 serializer.save(user=request.user)
                 return Response(serializer.data,status.HTTP_201_CREATED)
         except IntegrityError as e:
-            msg = {'msg': f'You already have {request.POST['symbol']} in your watchlist'}
+            msg = {'msg': f'You already have {request.POST["symbol"]} in your watchlist'}
             return Response(msg,status.HTTP_409_CONFLICT)
 
 
