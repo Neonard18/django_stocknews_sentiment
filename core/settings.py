@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-8-k(r2*j3ryg_2n280q^-!%cl)t-o5g_vdb4^q)5n_a91cges0
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1','localhost','django-stocknews-sentiment.onrender.com']
 
 
 # Application definition
