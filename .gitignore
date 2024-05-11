@@ -161,5 +161,3 @@ cython_debug/
 
 static/
 /migrations/
-db.sqlite3
-manage.py
