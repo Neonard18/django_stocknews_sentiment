@@ -18,6 +18,11 @@ from bs4 import BeautifulSoup
 from nltk.sentiment.vader import SentimentIntensityAnalyzer as sid
 import matplotlib.pyplot as plt
 import yfinance as yf
+import matplotlib
+from matplotlib.figure import Figure
+from matplotlib.backends.backend_agg import FigureCanvasAgg as FigureCanvas
+from io import BytesIO
+import threading
 
 # Create your views here.
 class WatchListViewSet(viewsets.ModelViewSet):
@@ -57,7 +62,6 @@ class AdminUserViewset(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
-    authentication_classes = (TokenAuthentication,)
 
     @action(detail=True, methods=['GET'])
     def get_stock_data(self, request, pk):
@@ -89,7 +93,6 @@ class UserViewSet(viewsets.ModelViewSet):
     def plot_stock_data(self, request, pk):
         user = get_object_or_404(User, pk=pk)
         watchlists = WatchList.objects.filter(user=user.id)
-        user = request.user
 
         newsurl = "https://finviz.com/quote.ashx?t="
 
@@ -150,19 +153,24 @@ class UserViewSet(viewsets.ModelViewSet):
 
             mean_df = mean_df.xs('compound',axis='columns').transpose()     #find out about the unstack
             
-            # kind: bar,line, barh
-            fig = mean_df.plot(kind='bar',title='Stock News Sentiment Analysis')
+            lock = threading.Lock()
+            with lock:
+                # kind: bar,line, barh
+                figure = Figure()
+                ax = figure.add_subplot(111)
 
-            script_dir = os.path.dirname(__file__)
-            parent_dir = os.path.dirname(script_dir)
-            static_dir = os.path.join(parent_dir,'static/')
-            file_name = 'graph.png'
+                fig = mean_df.plot(kind='bar',title='Stock News Sentiment Analysis',ax=ax)
 
-            if not os.path.isdir(static_dir):
-                os.makedirs(static_dir)
-            
-            plt.xticks(rotation=90)
-            fig.figure.savefig(static_dir + file_name)
+                script_dir = os.path.dirname(__file__)
+                parent_dir = os.path.dirname(script_dir)
+                static_dir = os.path.join(parent_dir,'static/')
+                file_name = 'graph.png'
+
+                if not os.path.isdir(static_dir):
+                    os.makedirs(static_dir)
+                
+                # plt.xticks(rotation=90)
+                fig.figure.savefig(static_dir + file_name)
 
             plotting = Plotting(plot= '/static/graph.png', user=user)
             plotting.save()
