@@ -23,6 +23,17 @@ class UserSerializer(serializers.ModelSerializer):
         Token.objects.create(user=user)
         return user
     
+class AdminUserSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id','email','first_name','password','last_name']
+        extra_kwargs = {'id':{'read_only':True}, 'password':{'write_only':True}}
+
+    def create(self,validated_data):
+        adminUser = User.objects.create_superuser(**validated_data)
+        Token.objects.create(user=adminUser)
+        return adminUser
+    
 
 class PlottingSerializer(serializers.ModelSerializer):
     class Meta:

@@ -4,7 +4,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import WatchList, User, Plotting
-from .serializers import WatchListSerializer, UserSerializer, PlottingSerializer
+from .serializers import WatchListSerializer, AdminUserSerializer, UserSerializer, PlottingSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from django.shortcuts import get_object_or_404
@@ -47,6 +47,11 @@ class WatchListViewSet(viewsets.ModelViewSet):
         except IntegrityError as e:
             msg = {'msg': f'You already have {request.POST["symbol"]} in your watchlist'}
             return Response(msg,status.HTTP_409_CONFLICT)
+        
+
+class AdminUserViewset(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = AdminUserSerializer
 
 
 class UserViewSet(viewsets.ModelViewSet):
