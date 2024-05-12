@@ -139,7 +139,8 @@ class UserViewSet(viewsets.ModelViewSet):
                 valid_date.append(date)
 
             df['date'] = valid_date
-            df['date'] = pd.to_datetime(df['date']).dt.date
+            # df['date'] = pd.to_datetime(df['date'], format='%d-%m-%Y').dt.
+            df['date'] = pd.to_datetime(df['date'], format='%b-%d-%y').dt.date
 
             vader = sid()
 
