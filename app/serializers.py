@@ -13,7 +13,7 @@ class WatchListSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id','email','password','first_name','last_name']
+        fields = ['id','email','password']
         extra_kwargs = {'id':{'read_only':True}, 'password':{'write_only':True}}
 
     def create(self, validated_data):
@@ -26,7 +26,7 @@ class UserSerializer(serializers.ModelSerializer):
 class AdminUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['id','email','first_name','password','last_name']
+        fields = ['id','email','password']
         extra_kwargs = {'id':{'read_only':True}, 'password':{'write_only':True}}
 
     def create(self,validated_data):

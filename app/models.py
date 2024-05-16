@@ -3,7 +3,7 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, Permis
 
 # Create your models here.
 class MyUserManager(BaseUserManager):
-    def create_user(self, email, first_name,password,**kwargs):
+    def create_user(self, email,password,**kwargs):
         if not email:
             raise ValueError('Users must provide an email address')
         if not password:
@@ -11,7 +11,6 @@ class MyUserManager(BaseUserManager):
         
         user = self.model(
             email = self.normalize_email(email),
-            first_name=first_name,
             **kwargs
         )
 
@@ -19,7 +18,7 @@ class MyUserManager(BaseUserManager):
         user.save()
         return user
     
-    def create_superuser(self, email, first_name,password,**kwargs):
+    def create_superuser(self, email,password,**kwargs):
         if not email:
             raise ValueError('Users must provide an email address')
         if not password:
@@ -27,7 +26,6 @@ class MyUserManager(BaseUserManager):
         
         user = self.model(
             email = self.normalize_email(email),
-            first_name=first_name,
             **kwargs
         )
         user.is_superuser = True
@@ -37,9 +35,7 @@ class MyUserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser,PermissionsMixin):
-    email = models.EmailField(max_length=100, unique= True, blank=False)
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length = 150, null=True)
+    email = models.EmailField(max_length=100, unique= True, blank=False)    
     
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=True)
@@ -48,10 +44,6 @@ class User(AbstractBaseUser,PermissionsMixin):
     objects = MyUserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['first_name']
-
-    def get_short_name(self):
-        return self.first_name
 
     def __str__(self) -> str:
         return self.email

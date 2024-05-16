@@ -1,4 +1,7 @@
 import yfinance as yf
+from bs4 import BeautifulSoup
+from urllib.request import urlopen, Request
+
 
 symbols= ['TSLA','META']
 stock_data = []
@@ -19,4 +22,10 @@ for symbol in symbols:
 
     stock_data.append({symbol:{'symbol':symbol,'close':round(hist1,2),'per_chg':round(percent_change,2),'Cap':f'{info:,.2f}'}})
 
-print(stock_data)
+# print(stock_data)
+def get_stock_data(symbol):
+    ticker = yf.Ticker(symbol)
+    info = ticker.get_info()
+    print(info)
+
+get_stock_data('AAPL')
