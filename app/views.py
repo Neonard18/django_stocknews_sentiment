@@ -4,6 +4,7 @@ from rest_framework import viewsets
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from .models import WatchList, User, Plotting
+from .permissions import IsOwner
 from .serializers import WatchListSerializer, AdminUserSerializer, UserSerializer, PlottingSerializer
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
@@ -29,18 +30,18 @@ class WatchListViewSet(viewsets.ModelViewSet):
     queryset = WatchList.objects.all()
     serializer_class = WatchListSerializer
     authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated,)
+    permission_classes = (IsAuthenticated, IsOwner)
 
     def list(self, request, *args, **kwargs):
-        queryset = WatchList.objects.filter(user=request.user)
+            queryset = WatchList.objects.filter(user=request.user)
 
-        page = self.paginate_queryset(queryset)
-        if page is not None:
-            serializer = self.get_serializer(page, many=True)
-            return self.get_paginated_response(serializer.data)
+            page = self.paginate_queryset(queryset)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
 
-        serializer = self.get_serializer(queryset, many=True)
-        return Response(serializer.data)
+            serializer = self.get_serializer(queryset, many=True)
+            return Response(serializer.data)
     
     def create(self, request, *args, **kwargs):
         try:
@@ -52,21 +53,11 @@ class WatchListViewSet(viewsets.ModelViewSet):
         except IntegrityError as e:
             msg = {'msg': f'You already have {request.POST["symbol"]} in your watchlist'}
             return Response(msg,status.HTTP_409_CONFLICT)
-        
 
-class AdminUserViewset(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = AdminUserSerializer
-
-
-class UserViewSet(viewsets.ModelViewSet):
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-
-    @action(detail=True, methods=['GET'])
-    def get_stock_data(self, request, pk):
+    @action(detail=False, methods=['GET'])
+    def get_stock_data(self, request):
         stock_data = []
-        user = get_object_or_404(User, pk=pk)
+        user = request.user
         watchlists = WatchList.objects.filter(user=user.id)
         try:
             for watchlist in watchlists:
@@ -89,9 +80,9 @@ class UserViewSet(viewsets.ModelViewSet):
             return Response({'Data':'Connection Failed'},status.HTTP_404_NOT_FOUND)
 
 
-    @action(detail=True, methods=['GET'])
-    def plot_stock_data(self, request, pk):
-        user = get_object_or_404(User, pk=pk)
+    @action(detail=False, methods=['GET'])
+    def plot_stock_data(self, request):
+        user = request.user
         watchlists = WatchList.objects.filter(user=user.id)
 
         newsurl = "https://finviz.com/quote.ashx?t="
@@ -165,7 +156,7 @@ class UserViewSet(viewsets.ModelViewSet):
                 script_dir = os.path.dirname(__file__)
                 parent_dir = os.path.dirname(script_dir)
                 static_dir = os.path.join(parent_dir,'static/')
-                file_name = 'graph.png'
+                file_name =  f'graph{user.id}.png'
 
                 if not os.path.isdir(static_dir):
                     os.makedirs(static_dir)
@@ -173,14 +164,23 @@ class UserViewSet(viewsets.ModelViewSet):
                 # plt.xticks(rotation=90)
                 fig.figure.savefig(static_dir + file_name)
 
-            plotting = Plotting(plot= '/static/graph.png', user=user)
+            plotting = Plotting(plot= f'static/{file_name}', user=user)
             plotting.save()
             return Response({'data':'Plotted'},status.HTTP_200_OK)    
 
         except KeyError as k:
             print(k.__cause__)
 
+class AdminUserViewset(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = AdminUserSerializer
 
+
+class UserViewSet(viewsets.ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+ 
 class PlottingViewSet(viewsets.ModelViewSet):
     queryset = Plotting.objects.all()
     serializer_class = PlottingSerializer
