@@ -72,10 +72,10 @@ class WatchListViewSet(viewsets.ModelViewSet):
                 percent_change = day_change * 100 /hist2
                 info = ticker.fast_info['market_cap']
 
-                stock_data.append({'symbol':watchlist.symbol,'close':round(hist1,2),'per_chg':f'{round(percent_change,2)}%','Cap':f'{info:,.2f}','news':news_title})
+                stock_data.append({'symbol':watchlist.symbol,'id':watchlist.id,'close':round(hist1,2),'per_chg':f'{round(percent_change,2)}%','cap':f'{info:,.2f}','news':news_title})
 
 
-            return Response({'Data':stock_data},status.HTTP_200_OK)
+            return Response(stock_data,status.HTTP_200_OK)
         except Exception as e:
             return Response({'Data':'Connection Failed'},status.HTTP_404_NOT_FOUND)
 
@@ -179,7 +179,13 @@ class AdminUserViewset(viewsets.ModelViewSet):
 class UserViewSet(viewsets.ModelViewSet):
     queryset = User.objects.all()
     serializer_class = UserSerializer
+    authentication_classes = (TokenAuthentication,)
 
+    @action(detail=False, methods=['GET'])
+    def get_current_user(self, request):
+        user = request.user
+        serializer = UserSerializer(user)
+        return Response(serializer.data, status.HTTP_200_OK)
  
 class PlottingViewSet(viewsets.ModelViewSet):
     queryset = Plotting.objects.all()

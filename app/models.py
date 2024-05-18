@@ -53,6 +53,8 @@ class User(AbstractBaseUser,PermissionsMixin):
 class WatchList(models.Model):
     symbol = models.CharField(max_length = 7, blank=False)
     user = models.ForeignKey(User, related_name='watchlist',on_delete=models.CASCADE)
+    image = models.ImageField(upload_to='images/', blank=True)
+    
 
     class Meta:
         constraints = [
