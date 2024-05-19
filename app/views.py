@@ -29,8 +29,8 @@ import threading
 class WatchListViewSet(viewsets.ModelViewSet):
     queryset = WatchList.objects.all()
     serializer_class = WatchListSerializer
-    authentication_classes = (TokenAuthentication,)
-    permission_classes = (IsAuthenticated, IsOwner)
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
 
     def list(self, request, *args, **kwargs):
             queryset = WatchList.objects.filter(user=request.user)
@@ -45,13 +45,16 @@ class WatchListViewSet(viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         try:
-            serializer = self.serializer_class(data=request.POST)
+            user = request.user
+            print(user)
+            serializer = self.serializer_class(data=request.data)
 
             if serializer.is_valid():
-                serializer.save(user=request.user)
+                serializer.save(user=user)
+                print(serializer.data)
                 return Response(serializer.data,status.HTTP_201_CREATED)
         except IntegrityError as e:
-            msg = {'msg': f'You already have {request.POST["symbol"]} in your watchlist'}
+            msg = {'msg': f'You already have {request.data["symbol"]} in your watchlist'}
             return Response(msg,status.HTTP_409_CONFLICT)
 
     @action(detail=False, methods=['GET'])
@@ -193,7 +196,7 @@ class PlottingViewSet(viewsets.ModelViewSet):
     authentication_classes = (TokenAuthentication,)
 
     def create(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.POST)
+        serializer = self.serializer_class(data=request.data)
 
         if serializer.is_valid():
             serializer.save(user= request.user)

@@ -36,6 +36,7 @@ class MyUserManager(BaseUserManager):
 
 class User(AbstractBaseUser,PermissionsMixin):
     email = models.EmailField(max_length=100, unique= True, blank=False)    
+    image = models.ImageField(upload_to='images/', blank=True)
     
     is_active = models.BooleanField(default=True)
     is_staff = models.BooleanField(default=True)
@@ -53,7 +54,6 @@ class User(AbstractBaseUser,PermissionsMixin):
 class WatchList(models.Model):
     symbol = models.CharField(max_length = 7, blank=False)
     user = models.ForeignKey(User, related_name='watchlist',on_delete=models.CASCADE)
-    image = models.ImageField(upload_to='images/', blank=True)
     
 
     class Meta:
